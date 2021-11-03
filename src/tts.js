@@ -54,7 +54,7 @@ class Worker {
                 return;
             }
 
-            if (Content.startsWith(";")) {
+            if (content.startsWith(";")) {
                 return;
             }
 
