@@ -25,6 +25,9 @@ client.on("messageCreate", message => {
     if (message.content === (`${prefix}bp`)) {
         const voiceChannel = message.member.voice.channel;
         const textChannel = message.channel;
+        if (Workers.find(worker => worker.voiceChannel === voiceChannel) || Workers.find(worker => worker.textChannel === textChannel)) {
+            return;
+        }
         Workers.push(new Worker(client, voiceChannel, textChannel));
         console.log(`${Workers.length}`);
     }

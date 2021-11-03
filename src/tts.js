@@ -27,8 +27,8 @@ class Worker {
         
         this.connection.on(VoiceConnectionStatus.Ready, () => {
             const player = createAudioPlayer();
-            player.play(joinSound);
             this.connection.subscribe(player);
+            player.play(joinSound);
         });
 
         this.client.on("messageCreate", message => {
@@ -66,9 +66,8 @@ class Worker {
                     }
                 });
     
-                player.play(resource);
-    
                 this.connection.subscribe(player);
+                player.play(resource);
             })
         });
     }
