@@ -1,7 +1,8 @@
 let sdk = require("microsoft-cognitiveservices-speech-sdk");
-const { demuxProbe, joinVoiceChannel, createAudioResource, createAudioPlayer, NoSubscriberBehavior, StreamType, AudioPlayerStatus } = require("@discordjs/voice");
+const { demuxProbe, joinVoiceChannel, createAudioResource, createAudioPlayer, NoSubscriberBehavior, StreamType, AudioPlayerStatus, VoiceConnectionStatus } = require("@discordjs/voice");
 const { Readable, PassThrough } = require("stream");
 const msgformat = require("./msgformat");
+const { createReadStream } = require("fs");
 require("dotenv").config();
 
 const env = process.env;
@@ -18,7 +19,19 @@ class Worker {
             adapterCreator: this.voiceChannel.guild.voiceAdapterCreator,
         });
 
-        client.on("messageCreate", message => {
+        this.main();
+    }
+
+    async main() {
+        const joinSound = await probeAndCreateResource(createReadStream("src/res/join.mp3"));
+        
+        this.connection.on(VoiceConnectionStatus.Ready, () => {
+            const player = createAudioPlayer();
+            player.play(joinSound);
+            this.connection.subscribe(player);
+        });
+
+        this.client.on("messageCreate", message => {
             
             const { textChannel } = this;
             const { content } = message;
@@ -39,10 +52,6 @@ class Worker {
 
             console.log(`[Worker ${this.textChannel.id}] ${message.author.username}: ${content}`);
 
-            async function probeAndCreateResource(readableStream) {
-                const { stream, type } = await demuxProbe(readableStream);
-                return createAudioResource(stream, { inputType: type, inlineVolume: true });
-            }
 
             synthesizeSpeech(text, async (buffer) => {
                 const resource = await probeAndCreateResource(buffer)
@@ -71,7 +80,7 @@ async function synthesizeSpeech(text, callback) {
     const serviceRegion = "southeastasia";
 
     let speechConfig = sdk.SpeechConfig.fromSubscription(subscriptionKey, serviceRegion);
-    speechConfig.outputFormat = sdk.SpeechSynthesisOutputFormat.Raw8Khz16BitMonoPcm;
+    speechConfig.outputFormat = sdk.SpeechSynthesisOutputFormat.Audio16Khz32KBitRateMonoMp3;
     speechConfig.speechSynthesisVoiceName = "ja-JP-NanamiNeural";
 
     const synthesizer = new sdk.SpeechSynthesizer(speechConfig, undefined);
@@ -93,6 +102,11 @@ async function synthesizeSpeech(text, callback) {
             synthesizer.close();
         }
     );
+}
+
+async function probeAndCreateResource(readableStream) {
+    const { stream, type } = await demuxProbe(readableStream);
+    return createAudioResource(stream, { inputType: type, inlineVolume: true });
 }
 
 module.exports = {
