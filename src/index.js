@@ -18,9 +18,6 @@ client.on("ready", () => {
 });
 
 client.on("messageCreate", message => {
-	if (message.content === (`${prefix}bp ping`)) {
-		message.channel.send('Pong.');
-	}
 
     if (message.content === (`${prefix}bp`)) {
         const voiceChannel = message.member.voice.channel;

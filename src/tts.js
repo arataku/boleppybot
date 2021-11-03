@@ -23,18 +23,17 @@ class Worker {
     }
 
     async main() {
-        const joinSound = await probeAndCreateResource(createReadStream("src/res/join.mp3"));
+        this.player = createAudioPlayer();
         
         this.connection.on(VoiceConnectionStatus.Ready, () => {
-            const player = createAudioPlayer();
-            this.connection.subscribe(player);
-            player.play(joinSound);
+            this.playSound("join");
         });
 
         this.client.on("messageCreate", message => {
             
             const { textChannel } = this;
             const { content } = message;
+            const prefix = env.PREFIX;
 
             const text = msgformat.process(content);
 
@@ -45,8 +44,12 @@ class Worker {
             if (message.channel.id !== textChannel.id) {
                 return;
             }
+            
+            if (message.content === (`${prefix}bole`)) {
+                this.playSound("join");
+            }
 
-            if (content.startsWith(env.PREFIX)) {
+            if (content.startsWith(prefix)) {
                 return;
             }
 
@@ -70,6 +73,12 @@ class Worker {
                 player.play(resource);
             })
         });
+    }
+
+    async playSound(name) {
+        const sound = await probeAndCreateResource(createReadStream("src/res/" + name + ".mp3"));
+        this.connection.subscribe(this.player);
+        this.player.play(sound);
     }
 }
 
