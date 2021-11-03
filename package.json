@@ -10,7 +10,7 @@
   "license": "MIT",
   "engines": {
     "node": "v16.8.0"
-  }
+  },
   "dependencies": {
     "@discordjs/opus": "^0.5.3",
     "@discordjs/rest": "^0.1.0-canary.0",
