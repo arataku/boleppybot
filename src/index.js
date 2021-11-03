@@ -2,12 +2,12 @@
 
 // pull in the required packages.
 const { Client, Intents } = require("discord.js");
-const { Worker } = require("./tts")
+const { Worker } = require("./tts");
 require("dotenv").config();
 
 const env = process.env;
 
-const prefix = ".";
+const prefix = env.PREFIX;
 
 const client = new Client({ intents: Object.keys(Intents.FLAGS) });
 
@@ -26,29 +26,15 @@ client.on("messageCreate", message => {
         const voiceChannel = message.member.voice.channel;
         const textChannel = message.channel;
         Workers.push(new Worker(client, voiceChannel, textChannel));
-        console.log(`${Workers.length}`)
+        console.log(`${Workers.length}`);
+    }
+
+    if (message.content === (`${prefix}bye`)) {
+        const target = Workers.find(worker => worker.textChannel.id === message.channel.id);
+        target.connection.disconnect();
+        Workers.splice(Workers.indexOf(target), 1);
+        console.log(`${Workers.length}`);
     }
 });
 
 client.login(env.DISCORD_TOKEN);
-
-/* 
-const subscriptionKey = env.AZURE_TOKEN;
-const serviceRegion = "southeastasia";
-
-let speechConfig = sdk.SpeechConfig.fromSubscription(subscriptionKey, serviceRegion);
-speechConfig.speechRecognitionLanguage = "ja-JP";
-speechConfig.speechSynthesisVoiceName = "Microsoft Server Speech Text to Speech Voice (ja-JP, Haruka)";
-
-const synthesizer = new sdk.SpeechSynthesizer(speechConfig);
-
-function getAudioStream(text) {
-    let result = new Promise((resolve, reject) => {
-        let result = synthesizer.speakTextAsync(text);
-        result.onSuccess = function (result) {
-            resolve(result);
-        }
-    })
-}
-
- */

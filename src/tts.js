@@ -21,7 +21,6 @@ class Worker {
         client.on("messageCreate", message => {
             
             const { textChannel } = this;
-            const { voiceChannel } = this;
             const { content } = message;
 
             const text = msgformat.process(content);
@@ -34,15 +33,23 @@ class Worker {
                 return;
             }
 
-            console.log(`${message.author.username}: ${content}`);
+            if (content.startsWith(env.PREFIX)) {
+                return;
+            }
+
+            console.log(`[Worker ${this.textChannel.id}] ${message.author.username}: ${content}`);
 
             async function probeAndCreateResource(readableStream) {
                 const { stream, type } = await demuxProbe(readableStream);
-                return createAudioResource(stream, { inputType: type });
+                return createAudioResource(stream, { inputType: type, inlineVolume: true });
             }
 
-            const stream = synthesizeSpeech(text, async (buffer) => {
-                const resource = await probeAndCreateResource(buffer);
+            synthesizeSpeech(text, async (buffer) => {
+                const resource = await probeAndCreateResource(buffer)
+                .then(res => {
+                    res.volume.setVolume(0.5);
+                    return res;
+                });
 
                 let player = createAudioPlayer({
                     behaviors: {
