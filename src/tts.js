@@ -24,13 +24,13 @@ class Worker {
 
     async main() {
         this.player = createAudioPlayer();
-
+        
         this.connection.on(VoiceConnectionStatus.Ready, () => {
             this.playSound("join");
         });
 
         this.client.on("messageCreate", message => {
-
+            
             const { textChannel } = this;
             const { content } = message;
             const prefix = env.PREFIX;
@@ -44,7 +44,7 @@ class Worker {
             if (message.channel.id !== textChannel.id) {
                 return;
             }
-
+            
             if (message.content === (`${prefix}bole`)) {
                 this.playSound("join");
             }
@@ -53,26 +53,22 @@ class Worker {
                 return;
             }
 
-            if (content.startsWith(";")) {
-                return;
-            }
-
             console.log(`[Worker ${this.textChannel.id}] ${message.author.username}: ${content}`);
 
 
             synthesizeSpeech(text, async (buffer) => {
                 const resource = await probeAndCreateResource(buffer)
-                    .then(res => {
-                        res.volume.setVolume(0.5);
-                        return res;
-                    });
+                .then(res => {
+                    res.volume.setVolume(0.5);
+                    return res;
+                });
 
                 let player = createAudioPlayer({
                     behaviors: {
                         noSubscriber: NoSubscriberBehavior.Stop,
                     }
                 });
-
+    
                 this.connection.subscribe(player);
                 player.play(resource);
             })
@@ -103,7 +99,7 @@ async function synthesizeSpeech(text, callback) {
             if (result) {
                 const { audioData } = result;
                 const stream = new Readable();
-                stream._read = () => { };
+                stream._read = () => {};
                 stream.push(Buffer.from(audioData));
                 stream.push(null);
                 callback(stream);
